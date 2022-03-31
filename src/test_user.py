@@ -1,3 +1,4 @@
+import uuid
 from unittest import TestCase
 
 from sqlalchemy import create_engine
