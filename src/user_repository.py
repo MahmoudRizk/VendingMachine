@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
@@ -20,11 +22,7 @@ class UserRepository:
         with Session(self.engine) as session:
             db_user = self.mapper.domain_to_data(user.to_dict(), DbUser)
 
-            stmt = select(DbUser).where(DbUser.id == db_user.id)
-            try:
-                stmt_res = session.scalars(stmt).one()
-            except NoResultFound as e:
-                stmt_res = None
+            stmt_res = self._get_by_id(session=session, _id=db_user.id)
 
             if not stmt_res:
                 # Insert new record.
@@ -38,5 +36,19 @@ class UserRepository:
             session.commit()
             return res
 
-    def get_by_id(self, id: str) -> User:
-        pass
+    def get_by_id(self, _id: str) -> User:
+        with Session(self.engine) as session:
+            db_user: Optional[DbUser] = self._get_by_id(session=session, _id=_id)
+            if db_user:
+                return self.mapper.data_to_domain(db_user.__dict__, User)
+
+            return None
+
+    def _get_by_id(self, session, _id: str) -> Optional[DbUser]:
+        stmt = select(DbUser).where(DbUser.id == _id)
+        try:
+            stmt_res = session.scalars(stmt).one()
+        except NoResultFound as e:
+            stmt_res = None
+
+        return stmt_res

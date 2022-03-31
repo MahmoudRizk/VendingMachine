@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from src.mapper import UserMapper
 from src.user_repository import UserRepository
@@ -65,12 +66,12 @@ class TestUserMapper(TestCase):
 class TestUserRepository(TestCase):
     def setUp(self):
         db_url = "sqlite+pysqlite:///:memory:"
-        engine = create_engine(db_url, future=True, echo=True)
+        self.engine = create_engine(db_url, future=True, echo=True)
         mapper = UserMapper()
 
-        Base.metadata.create_all(engine)
+        Base.metadata.create_all(self.engine)
 
-        self.user_repository = UserRepository(engine=engine, mapper=mapper)
+        self.user_repository = UserRepository(engine=self.engine, mapper=mapper)
 
     def test_create_new_user(self):
         user_name = "Test User 1"
@@ -92,6 +93,28 @@ class TestUserRepository(TestCase):
         new_user_name = "Test User 2"
         domain_user.name = new_user_name
         res: User = self.user_repository.insert(domain_user)
-        
+
         self.assertEqual(res.id, str(_id))
         self.assertEqual(res.name, new_user_name)
+
+    def test_get_missing_user(self):
+        _id = str(uuid.uuid4())
+
+        res = self.user_repository.get_by_id(_id)
+
+        self.assertFalse(res)
+
+    def test_get_existing_user(self):
+        _id1 = str(uuid.uuid4())
+        _id2 = str(uuid.uuid4())
+
+        with Session(self.engine) as session:
+            db_user_1 = DbUser(id=_id1, name="Test User 1")
+            db_user_2 = DbUser(id=_id2, name="Test User 2")
+
+            session.add_all([db_user_1, db_user_2])
+            session.commit()
+
+        res = self.user_repository.get_by_id(_id=_id1)
+
+        self.assertEqual(res.id, _id1)
