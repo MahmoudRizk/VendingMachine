@@ -1,7 +1,7 @@
 from sqlalchemy_utils import create_database
 from sqlalchemy import create_engine
 
-from src import Base, db_user
+from src import Base
 
 db_url = "sqlite+pysqlite:///database.db"
 create_database(db_url)

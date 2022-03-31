@@ -1,7 +1,7 @@
 from src.base.repository import Repository
-from src.mapper import UserMapper
-from user import User
-from db_user import DbUser
+from src.user.mapper import UserMapper
+from src.user.user import User
+from src.user.db_user import DbUser
 
 
 class UserRepository(Repository):

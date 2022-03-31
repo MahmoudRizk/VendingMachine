@@ -1,8 +1,8 @@
 from typing import Dict, Type, Optional
 
 from src.base.mapper import Mapper
-from src.user import User
-from src.db_user import DbUser
+from src.user.user import User
+from src.user.db_user import DbUser
 
 
 class UserMapper(Mapper):

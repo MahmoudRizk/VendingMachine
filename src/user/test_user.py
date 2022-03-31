@@ -4,11 +4,11 @@ from unittest import TestCase
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from src.mapper import UserMapper
-from src.user_repository import UserRepository
-from src import Base, db_user
-from user import *
-from db_user import DbUser
+from src.user.mapper import UserMapper
+from src.user.user_repository import UserRepository
+from src import Base
+from src.user.user import *
+from src.user.db_user import DbUser
 
 
 class TestUserDomain(TestCase):
