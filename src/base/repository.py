@@ -21,7 +21,7 @@ class Repository:
             domain_model.set_uuid()
 
         with Session(self.engine) as session:
-            db_model = self.mapper.domain_to_data(domain_model.to_dict(), self.db_model_type)
+            db_model = self.mapper.domain_to_data(domain_model, self.db_model_type)
 
             stmt_res = self._get_by_id(session=session, _id=db_model.id)
 

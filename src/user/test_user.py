@@ -4,6 +4,7 @@ from unittest import TestCase
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from src.base.mapper import TwoWayDict
 from src.user.db_role import DbRole
 from src.user.mapper import UserMapper
 from src.user.user_repository import UserRepository
@@ -35,13 +36,19 @@ class TestDbUser(TestCase):
 
 
 class TestUserMapper(TestCase):
+    def setUp(self):
+        self.mapped_entities = [
+            (User, DbUser),
+            (Role, DbRole)
+        ]
+
     def test_data_to_domain(self):
         _id = str(uuid.uuid4())
         user_name = "Test User 1"
 
         db_user = DbUser(id=_id, name=user_name)
 
-        mapper = UserMapper()
+        mapper = UserMapper(self.mapped_entities)
 
         domain_user = mapper.data_to_domain(db_user.__dict__, User)
 
@@ -56,7 +63,7 @@ class TestUserMapper(TestCase):
 
         db_user = DbUser(id=_id, name=user_name, roles=roles)
 
-        mapper = UserMapper()
+        mapper = UserMapper(self.mapped_entities)
 
         domain_user = mapper.data_to_domain(db_user.__dict__, User)
 
@@ -74,10 +81,9 @@ class TestUserMapper(TestCase):
 
         domain_user = User(id=_id, name=user_name)
 
-        mapper = UserMapper()
+        mapper = UserMapper(self.mapped_entities)
 
-        domain_user_dict = domain_user.to_dict()
-        db_user = mapper.domain_to_data(domain_user_dict, DbUser)
+        db_user = mapper.domain_to_data(domain_user, DbUser)
 
         self.assertEqual(type(db_user), DbUser)
         self.assertEqual(db_user.id, _id)
@@ -90,14 +96,17 @@ class TestUserMapper(TestCase):
 
         domain_user = User(id=_id, name=user_name, roles=roles)
 
-        mapper = UserMapper()
+        mapper = UserMapper(self.mapped_entities)
 
-        domain_user_dict = domain_user.to_dict()
-        db_user = mapper.domain_to_data(domain_user_dict, DbUser)
+        db_user = mapper.domain_to_data(domain_user, DbUser)
 
         self.assertEqual(type(db_user), DbUser)
         self.assertEqual(db_user.id, _id)
         self.assertEqual(db_user.name, user_name)
+        for it1, it2 in zip(db_user.roles, domain_user.roles):
+            self.assertEqual(type(it1), DbRole)
+            self.assertEqual(it1.name, it2.name)
+            self.assertEqual(it1.user_id, it2.user_id)
 
 
 class TestUserRepository(TestCase):
