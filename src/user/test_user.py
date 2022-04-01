@@ -4,6 +4,7 @@ from unittest import TestCase
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from src.user.db_role import DbRole
 from src.user.mapper import UserMapper
 from src.user.user_repository import UserRepository
 from src import Base
@@ -48,11 +49,46 @@ class TestUserMapper(TestCase):
         self.assertEqual(domain_user.id, _id)
         self.assertEqual(domain_user.name, user_name)
 
+    def test_data_to_domain_with_child_list(self):
+        _id = str(uuid.uuid4())
+        user_name = "Test User 1"
+        roles = [DbRole(name="Seller", user_id=_id)]
+
+        db_user = DbUser(id=_id, name=user_name, roles=roles)
+
+        mapper = UserMapper()
+
+        domain_user = mapper.data_to_domain(db_user.__dict__, User)
+
+        self.assertEqual(type(domain_user), User)
+        self.assertEqual(domain_user.id, _id)
+        self.assertEqual(domain_user.name, user_name)
+        for it1, it2 in zip(domain_user.roles, db_user.roles):
+            self.assertEqual(type(it1), Role)
+            self.assertEqual(it1.name, it2.name)
+            self.assertEqual(it1.user_id, it2.user_id)
+
     def test_domain_to_data(self):
         _id = str(uuid.uuid4())
         user_name = "Test User 1"
 
         domain_user = User(id=_id, name=user_name)
+
+        mapper = UserMapper()
+
+        domain_user_dict = domain_user.to_dict()
+        db_user = mapper.domain_to_data(domain_user_dict, DbUser)
+
+        self.assertEqual(type(db_user), DbUser)
+        self.assertEqual(db_user.id, _id)
+        self.assertEqual(db_user.name, user_name)
+
+    def test_domain_to_data_with_child_list(self):
+        _id = str(uuid.uuid4())
+        user_name = "Test User 1"
+        roles = [Role(name="Buyer", user_id=_id)]
+
+        domain_user = User(id=_id, name=user_name, roles=roles)
 
         mapper = UserMapper()
 
