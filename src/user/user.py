@@ -14,6 +14,7 @@ class Role(Domain):
 @dataclass
 class User(Domain):
     name: str = field(default=None)
+    deposit: float = field(default=0.0)
     roles: List[Role] = Domain.list_of_field(key="roles", list_of_type=Role)
 
     def __post_init__(self):
