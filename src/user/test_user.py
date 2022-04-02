@@ -198,7 +198,7 @@ class TestUserRepository(TestCase):
 
         self.assertTrue(res)
         self.assertTrue(res.id)
-        self.assertFalse(res.roles)
+        self.assertTrue(res.roles)
         self.assertEqual(res.name, user_name)
         for it in res.roles:
             self.assertTrue(it.id)
@@ -225,4 +225,25 @@ class TestUserRepository(TestCase):
             self.assertEqual(it.name, "Buyer")
             self.assertTrue(it.user_id)
             self.assertEqual(it.user_id, res.id)
+
+    def test_delete_role_to_previously_created_user(self):
+        user_name = "Test User 1"
+        roles = [Role(name="Seller"), Role(name="Buyer")]
+
+        domain_user = User(name=user_name, roles=roles)
+        domain_user: User = self.user_repository.insert(domain_model=domain_user)
+
+        domain_user.roles.pop(0)
+        res: User = self.user_repository.insert(domain_model=domain_user)
+
+        self.assertTrue(res)
+        self.assertTrue(res.id)
+        self.assertTrue(res.roles)
+        self.assertEqual(res.name, user_name)
+        self.assertEqual(len(res.roles), 1)
+
+        res_roles = res.roles
+        self.assertEqual(res_roles[0].name, "Buyer")
+        self.assertEqual(res_roles[0].user_id, res.id)
+        self.assertTrue(res_roles[0].id)
 

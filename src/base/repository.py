@@ -32,7 +32,7 @@ class Repository:
                 return self.mapper.data_to_domain(db_model.to_dict(), self.domain_model_type)
             else:
                 # Update Existing record
-                self._update_db_with_new_values(new_db_model=stmt_res, old_db_model=db_model)
+                self._update_db_with_new_values(session, new_db_model=stmt_res, old_db_model=db_model)
                 session.commit()
                 session.refresh(stmt_res)
                 return self.mapper.data_to_domain(stmt_res.to_dict(), self.domain_model_type)
@@ -62,13 +62,5 @@ class Repository:
             for it in _child_list:
                 it.set_uuid()
 
-    def _update_db_with_new_values(self, new_db_model: DbModel, old_db_model: DbModel) -> None:
-        _db_attributes_names: List[str] = [key for key in old_db_model.to_dict() if not key.startswith("_")]
-        for key in _db_attributes_names:
-            _value: Union[any, List[DbModel]] = getattr(old_db_model, key)
-            if issubclass(type(_value), list):
-                self._update_db_list(getattr(new_db_model, key), _value)
-            setattr(new_db_model, key, _value)
-
-    def _update_db_list(self, new_db_model_list: List[DbModel], old_db_model_list: List[DbModel]):
-        pass
+    def _update_db_with_new_values(self, session, new_db_model: DbModel, old_db_model: DbModel) -> None:
+        new_db_model = session.merge(old_db_model)

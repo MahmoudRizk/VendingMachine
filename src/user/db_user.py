@@ -12,4 +12,4 @@ class DbUser(DbModel, Base):
 
     name = Column(TEXT, nullable=False, unique=True)
     password = Column(TEXT, nullable=True)
-    roles = relationship("DbRole", back_populates="user")
+    roles = relationship("DbRole", back_populates="user", cascade="all, delete-orphan")
