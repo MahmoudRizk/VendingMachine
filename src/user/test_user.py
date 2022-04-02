@@ -50,7 +50,7 @@ class TestUserMapper(TestCase):
 
         mapper = UserMapper(self.mapped_entities)
 
-        domain_user = mapper.data_to_domain(db_user.__dict__, User)
+        domain_user = mapper.data_to_domain(db_user.to_dict(), User)
 
         self.assertEqual(type(domain_user), User)
         self.assertEqual(domain_user.id, _id)
@@ -65,7 +65,7 @@ class TestUserMapper(TestCase):
 
         mapper = UserMapper(self.mapped_entities)
 
-        domain_user = mapper.data_to_domain(db_user.__dict__, User)
+        domain_user = mapper.data_to_domain(db_user.to_dict(), User)
 
         self.assertEqual(type(domain_user), User)
         self.assertEqual(domain_user.id, _id)
@@ -175,7 +175,7 @@ class TestUserRepository(TestCase):
 
         domain_user = User(name=user_name, roles=roles)
         res: User = self.user_repository.insert(domain_user)
-        
+
         self.assertTrue(res)
         self.assertTrue(res.id)
         self.assertTrue(res.roles)
@@ -185,3 +185,44 @@ class TestUserRepository(TestCase):
             self.assertEqual(it.name, "Seller")
             self.assertTrue(it.user_id)
             self.assertEqual(it.user_id, res.id)
+
+    def test_add_role_to_previously_created_user(self):
+        user_name = "Test User 1"
+        roles = [Role(name="Seller")]
+
+        domain_user = User(name=user_name)
+        self.user_repository.insert(domain_model=domain_user)
+
+        domain_user.roles = roles
+        res: User = self.user_repository.insert(domain_model=domain_user)
+
+        self.assertTrue(res)
+        self.assertTrue(res.id)
+        self.assertFalse(res.roles)
+        self.assertEqual(res.name, user_name)
+        for it in res.roles:
+            self.assertTrue(it.id)
+            self.assertEqual(it.name, "Seller")
+            self.assertTrue(it.user_id)
+            self.assertEqual(it.user_id, res.id)
+
+    def test_update_role_to_previously_created_user(self):
+        user_name = "Test User 1"
+        roles = [Role(name="Seller")]
+
+        domain_user = User(name=user_name, roles=roles)
+        domain_user: User = self.user_repository.insert(domain_model=domain_user)
+
+        domain_user.roles[0].name = "Buyer"
+        res: User = self.user_repository.insert(domain_model=domain_user)
+
+        self.assertTrue(res)
+        self.assertTrue(res.id)
+        self.assertTrue(res.roles)
+        self.assertEqual(res.name, user_name)
+        for it in res.roles:
+            self.assertTrue(it.id)
+            self.assertEqual(it.name, "Buyer")
+            self.assertTrue(it.user_id)
+            self.assertEqual(it.user_id, res.id)
+

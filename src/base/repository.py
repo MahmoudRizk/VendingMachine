@@ -1,4 +1,4 @@
-from typing import Optional, Type, List
+from typing import Optional, Type, List, Dict, Union
 
 from sqlalchemy import select, update
 from sqlalchemy.exc import NoResultFound
@@ -63,8 +63,12 @@ class Repository:
                 it.set_uuid()
 
     def _update_db_with_new_values(self, new_db_model: DbModel, old_db_model: DbModel) -> None:
-        _db_attributes_names: List[str] = [key for key in old_db_model.__dict__ if not key.startswith("_")]
+        _db_attributes_names: List[str] = [key for key in old_db_model.to_dict() if not key.startswith("_")]
         for key in _db_attributes_names:
-            if key in new_db_model.__dict__:
-                setattr(new_db_model, key, getattr(old_db_model, key))
+            _value: Union[any, List[DbModel]] = getattr(old_db_model, key)
+            if issubclass(type(_value), list):
+                self._update_db_list(getattr(new_db_model, key), _value)
+            setattr(new_db_model, key, _value)
 
+    def _update_db_list(self, new_db_model_list: List[DbModel], old_db_model_list: List[DbModel]):
+        pass

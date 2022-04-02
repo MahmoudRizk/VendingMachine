@@ -39,7 +39,7 @@ class Mapper:
             if key in data:
                 if issubclass(type(data[key]), list) and key in list_of_map:
                     _list_of_type = list_of_map[key]
-                    res.update({key: [self.data_to_domain(it.__dict__, _list_of_type) for it in data[key]]})
+                    res.update({key: [self.data_to_domain(it, _list_of_type) for it in data[key]]})
                 else:
                     res.update({key: data[key]})
 
