@@ -113,9 +113,13 @@ class TestUserRepository(TestCase):
     def setUp(self):
         db_url = "sqlite+pysqlite:///:memory:"
         self.engine = create_engine(db_url, future=True, echo=True)
-        mapper = UserMapper()
-
         Base.metadata.create_all(self.engine)
+
+        mapped_entities = [
+            (User, DbUser),
+            (Role, DbRole)
+        ]
+        mapper = UserMapper(mapped_entities=mapped_entities)
 
         self.user_repository = UserRepository(engine=self.engine, mapper=mapper)
 
@@ -164,3 +168,20 @@ class TestUserRepository(TestCase):
         res = self.user_repository.get_by_id(_id=_id1)
 
         self.assertEqual(res.id, _id1)
+
+    def test_create_new_user_with_roles(self):
+        user_name = "Test User 1"
+        roles = [Role(name="Seller")]
+
+        domain_user = User(name=user_name, roles=roles)
+        res: User = self.user_repository.insert(domain_user)
+        
+        self.assertTrue(res)
+        self.assertTrue(res.id)
+        self.assertTrue(res.roles)
+        self.assertEqual(res.name, user_name)
+        for it in res.roles:
+            self.assertTrue(it.id)
+            self.assertEqual(it.name, "Seller")
+            self.assertTrue(it.user_id)
+            self.assertEqual(it.user_id, res.id)
