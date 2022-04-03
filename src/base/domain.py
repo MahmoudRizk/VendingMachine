@@ -26,4 +26,8 @@ class Domain:
 
     @classmethod
     def get_list_of_map(cls) -> Dict:
-        return cls._list_of_map
+        res = {}
+        for key, value in cls._list_of_map.items():
+            if key in cls.__dict__:
+                res.update({key: value})
+        return res
