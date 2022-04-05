@@ -5,9 +5,19 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from src.base.repository import Repository
+from src.user.db_role import DbRole
 from src.user.mapper import UserMapper
-from src.user.user import User, hash_password
+from src.user.user import User, hash_password, Role
 from src.user.db_user import DbUser
+
+
+def get_user_repository(engine):
+    mapped_entities = [
+        (User, DbUser),
+        (Role, DbRole)
+    ]
+    mapper = UserMapper(mapped_entities=mapped_entities)
+    return UserRepository(engine=engine, mapper=mapper)
 
 
 class UserRepository(Repository):
