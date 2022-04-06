@@ -37,6 +37,12 @@ class Repository:
                 session.refresh(stmt_res)
                 return self.mapper.data_to_domain(stmt_res.to_dict(), self.domain_model_type)
 
+    def get_all(self) -> List[Domain]:
+        with Session(self.engine) as session:
+            stmt = select(self.db_model_type)
+            db_model_list: List[DbModel] = session.scalars(stmt).all()
+            return [self.mapper.data_to_domain(it.to_dict(), self.domain_model_type) for it in db_model_list]
+
     def get_by_id(self, _id: str) -> Optional[Domain]:
         with Session(self.engine) as session:
             db_model: Optional[DbModel] = self._get_by_id(session=session, _id=_id)
