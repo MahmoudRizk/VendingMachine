@@ -33,8 +33,8 @@ class BaseApi:
 
         return True, None
 
-    def respond(self, code: int = 200, message: str = "", data: Optional[Dict] = None) -> BaseApiResponse:
+    def respond(self, code: int = 200, message: str = "", data: Optional[Dict] = None):
         return make_response(BaseApiResponse(code=code, message=message, data=data).to_dict(), code)
 
-    def execute(self) -> BaseApiResponse:
+    def execute(self, **kwargs) -> BaseApiResponse:
         pass
