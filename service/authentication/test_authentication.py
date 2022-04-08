@@ -1,3 +1,4 @@
+import json
 from typing import Optional, List
 from unittest import TestCase
 
@@ -5,6 +6,7 @@ from sqlalchemy import create_engine
 
 from service.authentication.sign_in import SignIn
 from service.authentication.sign_up import SignUp
+from service.authentication.token_generator import TokenGenerator
 from service.base_service_response import ServiceResponse
 from src import Base
 from src.user.db_role import DbRole
@@ -111,3 +113,47 @@ class TestSignIn(TestCase):
                 user: User = User(name=it[0])
                 self.user_repository.insert(user)
                 self.user_repository.set_user_password(user_id=user.id, password=it[1])
+
+
+class TestTokenGenerator(TestCase):
+    def setUp(self):
+        key = "DK2zBekJCArhrituq6sc5sfAF8pQTkKut3D1mp9_GhI='"
+
+        self.token_generator = TokenGenerator(key=key)
+
+    def test_encrypt_success(self):
+        test_samples = [
+            "Test Sample",
+            json.dumps({"a": "abc", "b": "xyz", "c": 1234})
+        ]
+
+        for it in test_samples:
+            valid, ct = self.token_generator.encrypt(it)
+            self.assertTrue(valid)
+
+    def test_decrypt_success(self):
+        test_samples = [
+            "Test Sample",
+            json.dumps({"a": "abc", "b": "xyz", "c": 1234}),
+            "X" * 10000
+        ]
+
+        for it in test_samples:
+            valid, ct = self.token_generator.encrypt(it)
+            valid, res = self.token_generator.decrypt(ct)
+            
+            self.assertTrue(valid)
+            self.assertEqual(res, it)
+
+    def test_decrypt_with_wrong_key(self):
+        wrong_key = "X1Ul7Y3aR4ITazL-LzZSqVdhq8MIORbUZE-WmmTzjaA="
+
+        text = "Test Sample 123"
+        valid, ct = self.token_generator.encrypt(text)
+
+        wrong_token_generator = TokenGenerator(key=wrong_key)
+        
+        # with self.assertRaises()
+        valid, text = wrong_token_generator.decrypt(ct)
+        
+        self.assertFalse(valid)
