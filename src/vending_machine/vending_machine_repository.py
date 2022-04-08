@@ -1,7 +1,19 @@
 from src.base.repository import Repository
 from src.vending_machine.db_vending_machine import DbVendingMachine
+from src.vending_machine.db_vending_machine_inventory import DbVendingMachineInventory
 from src.vending_machine.mapper import VendingMachineMapper
-from src.vending_machine.vending_machine import VendingMachine
+from src.vending_machine.vending_machine import VendingMachine, VendingMachineInventory
+
+
+def get_vending_machine_repository(engine):
+    mapped_entities = [
+        (VendingMachine, DbVendingMachine),
+        (VendingMachineInventory, DbVendingMachineInventory)
+    ]
+
+    mapper = VendingMachineMapper(mapped_entities=mapped_entities)
+
+    return VendingMachineRepository(engine=engine, mapper=mapper)
 
 
 class VendingMachineRepository(Repository):

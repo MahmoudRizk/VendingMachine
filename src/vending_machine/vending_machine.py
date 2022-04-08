@@ -58,6 +58,19 @@ class VendingMachine(Domain):
                                                                                                 current_available_amount,
                                                                                                 qty))
 
+    def create_inventory_line(self, line: VendingMachineInventory) -> None:
+        self.inventory.append(line)
+
+    def get_product_inventory_line(self, product_id) -> Optional[VendingMachineInventory]:
+        try:
+            return self._get_inventory_line(_id=product_id)
+        except VendingMachineMissingException as e:
+            return None
+
+    def update_inventory_item_cost(self, product_id: str, cost: float):
+        inventory_item = self._get_inventory_line(_id=product_id)
+        inventory_item.cost = cost
+
     def update_inventory_item_qty(self, product_id: str, qty: int):
         inventory_item = self._get_inventory_line(_id=product_id)
         inventory_item.amount_available += qty
