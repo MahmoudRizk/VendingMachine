@@ -56,7 +56,7 @@ class ProductsApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def create_product(self):
-        request_json_body_data = request.get_json()
+        request_json_body_data = self.request.get_json()
         required_parameters = ["name", "origin", "calories", "flavor"]
         valid, response = self.validate_parameters(params=required_parameters, request_params=request_json_body_data)
         if not valid:
@@ -83,7 +83,7 @@ class ProductsApi(BaseApi):
         if not product:
             self.respond(code=404)
 
-        json_body_data = request.get_json()
+        json_body_data = self.request.get_json()
 
         product_attrs = [key for key in product.to_dict()]
         for key, value in json_body_data.items():
