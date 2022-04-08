@@ -18,4 +18,4 @@ class SignIn:
         if not is_correct_password:
             return Response(success=False, message="Incorrect password for user name {0}".format(user_name))
 
-        return Response(success=True)
+        return Response(success=True, data={"user_id": user.id})
