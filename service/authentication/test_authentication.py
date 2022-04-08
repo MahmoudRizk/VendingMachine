@@ -128,8 +128,8 @@ class TestTokenGenerator(TestCase):
         ]
 
         for it in test_samples:
-            valid, ct = self.token_generator.encrypt(it)
-            self.assertTrue(valid)
+            response = self.token_generator.encrypt(it)
+            self.assertTrue(response.success)
 
     def test_decrypt_success(self):
         test_samples = [
@@ -139,21 +139,21 @@ class TestTokenGenerator(TestCase):
         ]
 
         for it in test_samples:
-            valid, ct = self.token_generator.encrypt(it)
-            valid, res = self.token_generator.decrypt(ct)
+            response = self.token_generator.encrypt(it)
+            response = self.token_generator.decrypt(response.data)
             
-            self.assertTrue(valid)
-            self.assertEqual(res, it)
+            self.assertTrue(response.success)
+            self.assertEqual(response.data, it)
 
     def test_decrypt_with_wrong_key(self):
         wrong_key = "X1Ul7Y3aR4ITazL-LzZSqVdhq8MIORbUZE-WmmTzjaA="
 
         text = "Test Sample 123"
-        valid, ct = self.token_generator.encrypt(text)
+        response = self.token_generator.encrypt(text)
 
         wrong_token_generator = TokenGenerator(key=wrong_key)
         
         # with self.assertRaises()
-        valid, text = wrong_token_generator.decrypt(ct)
+        response = wrong_token_generator.decrypt(response.data)
         
-        self.assertFalse(valid)
+        self.assertFalse(response.success)
