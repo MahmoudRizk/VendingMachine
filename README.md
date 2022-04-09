@@ -59,14 +59,18 @@ python >= 3.8
   ```commandline
   pip install -r requirments.txt
   ```
+* Update the environment in the .env file, or can use the default added values when testing.
 
 * Run Setup Script
   ```commandline
   python setup.py
   ```
   * The script will create the database with all the tables along with the administrator user.
+  * admin username is hardcoded to administrator and the password is specified in the .env file. 
 
 * Run the server
   ```commandline
   python main.py  
   ```
+* API Docs:
+    https://documenter.getpostman.com/view/12423053/UVyxRZTd
