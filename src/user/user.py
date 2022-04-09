@@ -22,6 +22,11 @@ class User(Domain):
         super(User, self).__post_init__()
         self.roles = self.roles or []
 
+    def add_role(self, role: str):
+        role_added_before = any(it.name for it in self.roles if it.name == role)
+        if not role_added_before:
+            self.roles.append(Role(name=role, user_id=self.id))
+
 
 def hash_password(password: str):
     return sha256(password.encode('utf-8')).hexdigest()
