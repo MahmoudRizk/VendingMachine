@@ -13,12 +13,12 @@ class TokenGenerator:
 
     def encrypt(self, text: str) -> Response:
         try:
-            return Response(success=True, data=self.encryptor(text.encode('ascii')))
+            return Response(success=True, data=self.encryptor(text.encode('ascii')).decode('ascii'))
         except Exception as e:
             return Response(success=False)
 
     def decrypt(self, cypher_text: str) -> Response:
         try:
-            return Response(success=True, data=self.decryptor(cypher_text).decode('ascii'))
+            return Response(success=True, data=self.decryptor(cypher_text.encode('ascii')).decode('ascii'))
         except Exception as e:
             return Response(success=False)

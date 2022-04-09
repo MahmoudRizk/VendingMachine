@@ -29,7 +29,7 @@ class SingInApi(BaseApi):
             token_generator = TokenGenerator(key=authentication_secret_key)
             token_content = json.dumps({"user_id": res.data["user_id"]})
             token = token_generator.encrypt(token_content)
-            data.update({"token": str(token.data)})
+            data.update({"token": token.data})
         else:
             code = 417
 
