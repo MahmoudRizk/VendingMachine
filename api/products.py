@@ -1,12 +1,20 @@
-from typing import List
+from typing import List, Callable, Optional, Tuple
 
 from flask import jsonify, request, Request
 from markupsafe import escape
 
 from api import app, engine
 from api.base_api import BaseApi
+from service.authorize.authorize import Authorize
 from src.product.product import Product
 from src.product.product_repository import get_product_repository
+
+
+def has_product_update_permission(user: "User") -> Tuple[bool, str]:
+    valid: bool = any(it.name == "Seller" for it in user.roles)
+    if not valid:
+        return False, "Must have Seller permission to complete this action."
+    return True, ""
 
 
 class ProductsApi(BaseApi):
@@ -56,6 +64,12 @@ class ProductsApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def create_product(self):
+        authorizer = Authorize(self.request)
+        valid, message = authorizer.has_permission(has_product_update_permission)
+
+        if not valid:
+            return self.respond(code=403, message=message)
+
         request_json_body_data = self.request.get_json()
         required_parameters = ["name", "origin", "calories", "flavor"]
         valid, response = self.validate_parameters(params=required_parameters, request_params=request_json_body_data)
@@ -78,6 +92,12 @@ class ProductsApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def update_product(self, product_id: str):
+        authorizer = Authorize(self.request)
+        valid, message = authorizer.has_permission(has_product_update_permission)
+
+        if not valid:
+            return self.respond(code=403, message=message)
+
         product_repository = get_product_repository(engine)
         product = product_repository.get_by_id(_id=escape(product_id))
         if not product:
