@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from flask import jsonify, request, Request
 
@@ -33,8 +33,8 @@ class VendingMachinesApi(BaseApi):
             "create_vending_machine": self.create_vending_machine,
             "update_vending_machine": self.update_vending_machine,
             "update_vending_machine_inventory": self.update_vending_machine_inventory,
-            "add_user_deposit": self.add_user_deposit
-
+            "add_user_deposit": self.add_user_deposit,
+            "buy_product": self.buy_product
         }
 
     def execute(self, method_name: str, **kwargs):
@@ -210,6 +210,46 @@ class VendingMachinesApi(BaseApi):
 
         return self.respond(code=200, data=data)
 
+    def buy_product(self, vending_machine_id: str):
+        valid, user = self.authorizer.is_authorized()
+        if not valid:
+            return self.respond(code=403)
+
+        valid, message = self.authorizer.has_role(role="Buyer")
+        if not valid:
+            return self.respond(code=403, message=message)
+
+        vending_machine_repository = get_vending_machine_repository(engine=engine)
+        user_repository = get_user_repository(engine=engine)
+
+        vending_machine = vending_machine_repository.get_by_id(_id=vending_machine_id)
+        if not vending_machine:
+            return self.respond(code=404)
+
+        request_json_body_data = self.request.get_json()
+        required_parameters = ["product_id", "qty"]
+        valid, response = self.validate_parameters(params=required_parameters, request_params=request_json_body_data)
+        if not valid:
+            return response
+
+        vending_machine_service = VendingMachineService(user_repository=user_repository,
+                                                        vending_machine_repository=vending_machine_repository)
+
+        product_id = request_json_body_data["product_id"]
+        qty = request_json_body_data["qty"]
+        res = vending_machine_service.buy_product(user=user, vending_machine=vending_machine, product_id=product_id,
+                                                  qty=qty)
+
+        if not res.success:
+            return self.respond(code=417, message=res.message)
+
+        res_data: Dict = res.data
+        data = {
+            "change": res_data["change"]
+        }
+
+        return self.respond(code=200, data=data)
+
 
 @app.route("/vending_machines", methods=["GET"])
 def get_vending_machines():
@@ -242,3 +282,9 @@ def update_vending_machine_inventory(vending_machine_id: str):
 @app.route("/vending_machines/add_user_deposit", methods=["POST"])
 def add_user_deposit():
     return VendingMachinesApi(request=request, methods=["POST"]).execute(method_name="add_user_deposit")
+
+
+@app.route("/vending_machines/<string:vending_machine_id>/buy", methods=["POST"])
+def buy_product(vending_machine_id: str):
+    return VendingMachinesApi(request=request, methods=["POST"]).execute(method_name="buy_product",
+                                                                         vending_machine_id=vending_machine_id)
