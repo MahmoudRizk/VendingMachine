@@ -13,23 +13,8 @@ class Authorize:
 
     def is_authorized(self) -> Tuple[bool, Optional[User]]:
         token = self.request.headers.get("token")
-        if not token:
-            return False, None
 
-        token_generator = TokenGenerator(key=authentication_secret_key)
-        res = token_generator.decrypt(token)
-        if res.success:
-            _dict = json.loads(res.data)
-            user_id = _dict.get("user_id", None)
-            if not user_id:
-                return False, None
-            user_repository = get_user_repository(engine)
-            user = user_repository.get_by_id(_id=user_id)
-            if not user:
-                return False, None
-
-            return True, user
-        return False, None
+        return self.get_user_from_token(token=token)
 
     def has_permission(self, permission_func: Callable, **kwargs) -> Tuple[bool, str]:
         valid, user = self.is_authorized()
@@ -61,3 +46,22 @@ class Authorize:
         if not valid:
             return False, "Must have {0} permission to complete this action.".format(role)
         return True, ""
+
+    def get_user_from_token(self, token: str) -> Tuple[bool, Optional[User]]:
+        if not token:
+            return False, None
+
+        token_generator = TokenGenerator(key=authentication_secret_key)
+        res = token_generator.decrypt(token)
+        if res.success:
+            _dict = json.loads(res.data)
+            user_id = _dict.get("user_id", None)
+            if not user_id:
+                return False, None
+            user_repository = get_user_repository(engine)
+            user = user_repository.get_by_id(_id=user_id)
+            if not user:
+                return False, None
+
+            return True, user
+        return False, None

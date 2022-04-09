@@ -57,8 +57,7 @@ class ProductsApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def create_product(self):
-        authorizer = Authorize(self.request)
-        valid, message = authorizer.has_role(role="Seller")
+        valid, message = self.authorizer.has_role(role="Seller")
 
         if not valid:
             return self.respond(code=403, message=message)
@@ -85,8 +84,7 @@ class ProductsApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def update_product(self, product_id: str):
-        authorizer = Authorize(self.request)
-        valid, message = authorizer.has_role(role="Seller")
+        valid, message = self.authorizer.has_role(role="Seller")
 
         if not valid:
             return self.respond(code=403, message=message)
