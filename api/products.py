@@ -10,13 +10,6 @@ from src.product.product import Product
 from src.product.product_repository import get_product_repository
 
 
-def has_product_update_permission(user: "User") -> Tuple[bool, str]:
-    valid: bool = any(it.name == "Seller" for it in user.roles)
-    if not valid:
-        return False, "Must have Seller permission to complete this action."
-    return True, ""
-
-
 class ProductsApi(BaseApi):
     def __init__(self, request: Request, methods: List[str]):
         super(ProductsApi, self).__init__(request=request, methods=methods)
@@ -65,7 +58,7 @@ class ProductsApi(BaseApi):
 
     def create_product(self):
         authorizer = Authorize(self.request)
-        valid, message = authorizer.has_permission(has_product_update_permission)
+        valid, message = authorizer.has_role(role="Seller")
 
         if not valid:
             return self.respond(code=403, message=message)
@@ -93,7 +86,7 @@ class ProductsApi(BaseApi):
 
     def update_product(self, product_id: str):
         authorizer = Authorize(self.request)
-        valid, message = authorizer.has_permission(has_product_update_permission)
+        valid, message = authorizer.has_role(role="Seller")
 
         if not valid:
             return self.respond(code=403, message=message)

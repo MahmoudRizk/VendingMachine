@@ -52,3 +52,12 @@ class Authorize:
             return True, ""
 
         return False, "Not admin"
+
+    def has_role(self, role: str) -> Tuple[bool, str]:
+        return self.has_permission(self._has_role, role=role)
+
+    def _has_role(self, user: User, role: str) -> Tuple[bool, str]:
+        valid: bool = any(it.name == role for it in user.roles)
+        if not valid:
+            return False, "Must have {0} permission to complete this action.".format(role)
+        return True, ""
