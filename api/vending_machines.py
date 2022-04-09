@@ -4,8 +4,21 @@ from flask import jsonify, request, Request
 
 from api import app, engine
 from api.base_api import BaseApi
+from service.authorize.authorize import Authorize
+from src.user.user import User
 from src.vending_machine.vending_machine import VendingMachine, VendingMachineInventory
 from src.vending_machine.vending_machine_repository import get_vending_machine_repository
+
+
+def has_update_inventory_permission(user: User, inventory_line: VendingMachineInventory):
+    valid: bool = any(it.name == "Seller" for it in user.roles)
+    if not valid:
+        return False, "Must have Seller permission to complete this action"
+
+    if user.id != inventory_line.seller_id:
+        return False, "user {0} is not allowed to edit this inventory record {1}".format(user.id, inventory_line.id)
+
+    return True, ""
 
 
 class VendingMachinesApi(BaseApi):
@@ -64,6 +77,10 @@ class VendingMachinesApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def create_vending_machine(self):
+        valid, message = self.authorizer.is_admin()
+        if not valid:
+            return self.respond(code=403, message=message)
+
         request_json_body_data = self.request.get_json()
 
         required_parameters = ["name", "model_number", "location"]
@@ -86,6 +103,10 @@ class VendingMachinesApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def update_vending_machine(self, vending_machine_id: str):
+        valid, message = self.authorizer.is_admin()
+        if not valid:
+            return self.respond(code=403, message=message)
+
         json_body_data = self.request.get_json()
 
         vending_machine_repository = get_vending_machine_repository(engine=engine)
@@ -110,6 +131,10 @@ class VendingMachinesApi(BaseApi):
         return self.respond(code=200, data=data)
 
     def update_vending_machine_inventory(self, vending_machine_id: str):
+        valid, message = self.authorizer.has_role(role="Seller")
+        if not valid:
+            return self.respond(code=403, message=message)
+
         json_body_data = self.request.get_json()
 
         required_parameters = ["product_id"]
@@ -128,16 +153,19 @@ class VendingMachinesApi(BaseApi):
 
         inventory_line: Optional[VendingMachineInventory] = vending_machine.get_product_inventory_line(product_id)
 
-        # TODO: check user permissions
         if not inventory_line:
-            # TODO: create a new one.
             qty = qty or 0
             cost = cost or 0
             inventory_line = VendingMachineInventory(vending_machine_id=vending_machine.id, product_id=product_id,
-                                                     seller_id="MOCKED SELLER", amount_available=qty, cost=cost)
+                                                     seller_id=self.session_user.id, amount_available=qty, cost=cost)
             vending_machine.create_inventory_line(inventory_line)
 
         else:
+            valid, message = self.authorizer.has_permission(has_update_inventory_permission,
+                                                            inventory_line=inventory_line)
+            if not valid:
+                return self.respond(code=403, message=message)
+
             if qty is not None:
                 inventory_line.amount_available += qty
 
