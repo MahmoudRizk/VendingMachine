@@ -55,3 +55,12 @@ class UserRepository(Repository):
                 return db_user.password == hash_password(password=password)
         except Exception as e:
             return False
+
+    def create_or_update_admin(self, password: str):
+        admin_user_name = "administrator"
+        user = self.get_by_user_name(admin_user_name)
+        if not user:
+            user = User(name=admin_user_name, is_admin=True)
+            self.insert(user)
+
+        self.set_user_password(user_id=user.id, password=password)

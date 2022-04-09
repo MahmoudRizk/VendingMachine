@@ -1,4 +1,4 @@
-from sqlalchemy import Column, TEXT, Float
+from sqlalchemy import Column, TEXT, Float, Boolean
 from sqlalchemy.orm import relationship
 
 from src.base.db_model import DbModel
@@ -12,3 +12,4 @@ class DbUser(DbModel, Base):
     password = Column(TEXT, nullable=True)
     deposit = Column(Float, default=0.0)
     roles = relationship("DbRole", back_populates="user", cascade="all, delete-orphan")
+    is_admin = Column(Boolean, default=False)

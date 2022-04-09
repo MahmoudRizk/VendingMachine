@@ -15,6 +15,7 @@ class Role(Domain):
 class User(Domain):
     name: str = field(default=None)
     deposit: float = field(default=0.0)
+    is_admin: bool = field(default=False)
     roles: List[Role] = Domain.list_of_field(key="roles", list_of_type=Role)
 
     def __post_init__(self):
