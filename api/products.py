@@ -92,7 +92,7 @@ class ProductsApi(BaseApi):
         product_repository = get_product_repository(engine)
         product = product_repository.get_by_id(_id=escape(product_id))
         if not product:
-            self.respond(code=404)
+            return self.respond(code=404)
 
         json_body_data = self.request.get_json()
 
